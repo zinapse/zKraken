@@ -363,12 +363,13 @@ if __name__ == '__main__':
             # Start this set to False
             force = False
             
+            # Format and print the current price
+            current_price = get_ticker_price(coin)
+            current_price = Decimal(current_price)
+
             # Print sell and buy prices
             print('[INFO]: sell_at {:.3f}'.format(sell_at))
             print('[INFO]: buy_at {:.3f}'.format(buy_at))
-            
-            # Format the current price
-            current_price = Decimal(current_price)
 
             # Check if we should force buy/sell
             if((current_price <= buy_at or current_price >= sell_at) and current_price > max_buy and counter != delay_sell):
