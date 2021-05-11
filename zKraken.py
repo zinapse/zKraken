@@ -352,7 +352,7 @@ if __name__ == '__main__':
         print('Press [SPACE] to enter commands.')
 
         while True:
-            if(pause):
+            if(pause == True):
                 time.sleep(delay)
                 continue
 
