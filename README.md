@@ -7,7 +7,8 @@
 ```
 pip install keyboard krakenex
 ```
- 3. Navigate to the folder where zKraken is installed to and type:
+ 3. Download the code in this repository either with GitHub Desktop, or by clicking the Code button at the top of this page and downloading the zip file.
+ 4. Navigate to the folder where zKraken is installed to and type:
 ```
 cd "DIRECTORY PATH"
 python zKraken.py
