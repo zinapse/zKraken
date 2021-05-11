@@ -381,6 +381,9 @@ if __name__ == '__main__':
                 if(counter >= limit_counter):
                     hasDone = False
 
+                if(counter >= delay_sell):
+                    counter = 0
+
                 if(force == False):
                     # If it wasn't forced we can reset these
                     hasDone = False
