@@ -49,13 +49,13 @@ if __name__ == '__main__':
             'pair': pair,
             'ordertype': 'market', 
             'type': 'buy',
-            'volume': int(c_volume['buy'])
+            'volume': Decimal(c_volume['buy'])
         }
         sell_dict = {
             'pair': pair,
             'ordertype': 'market', 
             'type': 'sell',
-            'volume': int(c_volume['sell'])
+            'volume': Decimal(c_volume['sell'])
         }
 
         # Pause output
@@ -99,13 +99,13 @@ if __name__ == '__main__':
                 'pair': pair,
                 'ordertype': 'market', 
                 'type': 'buy',
-                'volume': int(c_volume['buy'])
+                'volume': Decimal(c_volume['buy'])
             }
             sell_dict = {
                 'pair': pair,
                 'ordertype': 'market', 
                 'type': 'sell',
-                'volume': int(c_volume['sell'])
+                'volume': Decimal(c_volume['sell'])
             }
 
         # Get the account balance
