@@ -83,13 +83,6 @@ if __name__ == '__main__':
         # Update max_buy
         global max_buy
         max_buy = Decimal(c_price['max_buy'])
-
-        # Update buy_at
-        global buy_at, sell_at
-        buy_at = Decimal(c_price['buy'])
-        sell_at = Decimal(c_price['sell'])
-        if(buy_at < max_buy):
-            buy_at = max_buy
         
         # Update coin and currency data
         global coin, currency
@@ -182,6 +175,10 @@ if __name__ == '__main__':
                 max_buy = buy_at + Decimal(0.01)
                 if(max_buy >= (sell_at - Decimal(0.02))):
                     max_buy = buy_at
+                    config.set('PRICE', 'max_buy', '{:.3f}'.format(max_buy))
+                    with open('z-coin.ini', 'w') as configfile:
+                        config.write(configfile)
+
                 return True
 
             print('[ERROR]: ' + str(resp['error'][0]))
@@ -192,6 +189,10 @@ if __name__ == '__main__':
         
         # Increase the max_buy price
         max_buy = max_buy + Decimal(0.005)
+
+        config.set('PRICE', 'max_buy', '{:.3f}'.format(max_buy))
+        with open('z-coin.ini', 'w') as configfile:
+            config.write(configfile)
 
         result = str(resp['result']['descr']['order'])
         print('[Sold]: {}: {:.6f}'.format(result, current_price))
@@ -225,6 +226,9 @@ if __name__ == '__main__':
                 print('[!Bought]: Insufficient funds')
                 if(lowered < 5):
                     sell_at = sell_at - Decimal(0.01)
+                    config.set('PRICE', 'sell_at', '{:.3f}'.format(sell_at))
+                    with open('z-coin.ini', 'w') as configfile:
+                        config.write(configfile)
                     lowered += 1
                 return True
 
@@ -253,11 +257,18 @@ if __name__ == '__main__':
     def update_targets(current):
         global sell_at
         global buy_at
-        sell_at = current + Decimal(c_price['sell'])
-        buy_at = current - Decimal(c_price['buy'])
+        sell_at = Decimal(current) + Decimal(c_price['sell'])
+        buy_at = Decimal(current) - Decimal(c_price['buy'])
 
         if(buy_at < max_buy):
             buy_at = max_buy
+    
+    # Update initial buy and sell prices
+    buy_at = 0
+    sell_at = 0
+    update_targets(current_price)
+    if(buy_at < max_buy):
+        buy_at = max_buy
     
     def show_menu(self):
         global pause
