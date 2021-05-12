@@ -20,7 +20,7 @@ cd "DIRECTORY PATH"
 python zKraken.py
 ```
 
- If you press the spacebar you can enter a few different commands to change INI settings while running. If you type nothing and hit enter you'll see a list of commands. (type them without the quotation marks)
+ If you press F you can enter a few different commands to change INI settings while running. If you type nothing and hit enter you'll see a list of commands. (type them without the quotation marks)
  
  To close the program just press Ctrl+C.
 
