@@ -4,7 +4,7 @@
  I'm currently just working on this as a hobby project, but I hope it can be useful to someone.
  
 ## Issues
- - The keyboard hook sometimes calls the callback function multiple times. (You can remove this functionality by commenting or removing the line that calls `keyboard.on_press_key()`)
+ - The keyboard hook is called if you press F, even while not focused on the terminal/command prompt. (You can remove this functionality by commenting or removing the line that calls `keyboard.on_press_key()`)
  - Some coins aren't able to be queried, and I'll need to look into the API to find out what the coin tickers are. (For example: `DOGE` doesn't work, but instead it's `XDG`. `BTC` doesn't work, so I need to find out how they're named.)
 
 ## Installation & Usage
