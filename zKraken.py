@@ -187,13 +187,6 @@ if __name__ == '__main__':
                 e.write('SELL ERROR: {}\n'.format(str(resp['error'][0])))
                 e.close()
                 return False
-            
-            # Increase the max_buy price
-            max_buy = max_buy + Decimal(0.005)
-
-            config.set('PRICE', 'max_buy', '{:.3f}'.format(max_buy))
-            with open('z-coin.ini', 'w') as configfile:
-                config.write(configfile)
 
             result = str(resp['result']['descr']['order'])
             print('[Sold]: {}: {:.6f}'.format(result, current_price))
