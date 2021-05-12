@@ -345,11 +345,12 @@ if __name__ == '__main__':
         hasDone = False
 
         # Keyboard hook
-        keyboard.on_press_key('space', show_menu)
+        keyboard.on_press_key('f', show_menu)
 
         # "Welcome" message
         print('[{}]: Starting...)'.format(str(starttime)))
-        print('Press [SPACE] to enter commands.')
+        print('')
+        print('Press [F] to enter commands.')
 
         while True:
             if(pause == True):
