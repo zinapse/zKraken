@@ -194,6 +194,7 @@ if __name__ == '__main__':
             f = open('coin_output.txt', 'a')
             f.write('SELL ORDER: {}: {}\n'.format(result, str(current_price)))
 
+            # Output and log the "txid" field if it's returned
             try:
                 tx_id = str(resp['result']['descr']['txid'])
                 f.write('TXID: {}\n'.format(tx_id))
@@ -215,7 +216,6 @@ if __name__ == '__main__':
                 # If we don't have funds we don't need to exit, just print
                 # Also decrease the sell_at price up to 5 cents
                 if(error[1] == 'Insufficient funds'):
-                    global sell_at
                     global lowered
                     print('[!Bought]: Insufficient funds')
                     if(lowered < 5):
