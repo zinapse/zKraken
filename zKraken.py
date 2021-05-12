@@ -266,69 +266,69 @@ if __name__ == '__main__':
         
         def show_menu(self):
             global pause
-            if(pause == True): return
 
-            # Pause output
-            pause = True
+            if(pause == False):
+                # Pause output
+                pause = True
 
-            # Enter a command
-            cmd = input('Command>')
-            cmd = str(cmd).strip()
+                # Enter a command
+                cmd = input('Command>')
+                cmd = str(cmd).strip()
 
-            # Check what was entered
-            if(cmd == 'balance'):
-                # Check account balance
-                balance = get_account_balance()
-                if(balance == False):
-                    print('[EXIT]: Error on get_account_balance()')
+                # Check what was entered
+                if(cmd == 'balance'):
+                    # Check account balance
+                    balance = get_account_balance()
+                    if(balance == False):
+                        print('[EXIT]: Error on get_account_balance()')
+                        exit()
+                    print()
+                elif(cmd == 'sell at'):
+                    # Set the sell_at price
+                    tmp_sell = float(input('Price>'))
+                    config.set('PRICE', 'sell', '{:.3f}'.format(tmp_sell))
+                    print('[NOTICE]: sell_at updated to {:.3f}'.format(tmp_sell))
+                elif(cmd == 'buy at'):
+                    # Set the buy_at price
+                    tmp_buy = float(input('Price>'))
+                    config.set('PRICE', 'buy', '{:.3f}'.format(tmp_buy))
+                    print('[NOTICE]: buy_at updated to {:.3f}'.format(tmp_buy))
+                elif(cmd == 'sell volume'):
+                    # Set the sell volume to send
+                    sell_vol = int(input('Volume>'))
+                    config.set('VOLUME', 'sell', '{:.3f}'.format(sell_vol))
+                    print('[NOTICE]: Sell volume updated to {:.3f}'.format(sell_vol))
+                elif(cmd == 'buy volume'):
+                    # Set the buy volume to send
+                    buy_vol = int(input('Volume>'))
+                    config.set('VOLUME', 'buy', '{:.3f}'.format(buy_vol))
+                    print('[NOTICE]: Sell volume updated to {:.3f}'.format(buy_vol))
+                elif(cmd == 'max buy'):
+                    # Set the max buy price
+                    tmp_mb = float(input('Price>'))
+                    config.set('PRICE', 'max_buy', '{:.3f}'.format(tmp_mb))
+                    print('[NOTICE]: Max buy price set to {:.3f}'.format(tmp_mb))
+                elif(cmd == 'set delay'):
+                    # Set a new delay
+                    tmp_delay = input('Seconds>')
+                    config.set('TIME', 'delay', tmp_delay)
+                    update_dictionaries()
+                    print('[NOTICE]: Delay updated to {}'.format(tmp_delay))
+                elif(cmd == 'exit'):
+                    # Quitting
+                    print('[EXIT]: Quitting...')
                     exit()
-                print()
-            elif(cmd == 'sell at'):
-                # Set the sell_at price
-                tmp_sell = float(input('Price>'))
-                config.set('PRICE', 'sell', '{:.3f}'.format(tmp_sell))
-                print('[NOTICE]: sell_at updated to {:.3f}'.format(tmp_sell))
-            elif(cmd == 'buy at'):
-                # Set the buy_at price
-                tmp_buy = float(input('Price>'))
-                config.set('PRICE', 'buy', '{:.3f}'.format(tmp_buy))
-                print('[NOTICE]: buy_at updated to {:.3f}'.format(tmp_buy))
-            elif(cmd == 'sell volume'):
-                # Set the sell volume to send
-                sell_vol = int(input('Volume>'))
-                config.set('VOLUME', 'sell', '{:.3f}'.format(sell_vol))
-                print('[NOTICE]: Sell volume updated to {:.3f}'.format(sell_vol))
-            elif(cmd == 'buy volume'):
-                # Set the buy volume to send
-                buy_vol = int(input('Volume>'))
-                config.set('VOLUME', 'buy', '{:.3f}'.format(buy_vol))
-                print('[NOTICE]: Sell volume updated to {:.3f}'.format(buy_vol))
-            elif(cmd == 'max buy'):
-                # Set the max buy price
-                tmp_mb = float(input('Price>'))
-                config.set('PRICE', 'max_buy', '{:.3f}'.format(tmp_mb))
-                print('[NOTICE]: Max buy price set to {:.3f}'.format(tmp_mb))
-            elif(cmd == 'set delay'):
-                # Set a new delay
-                tmp_delay = input('Seconds>')
-                config.set('TIME', 'delay', tmp_delay)
-                update_dictionaries()
-                print('[NOTICE]: Delay updated to {}'.format(tmp_delay))
-            elif(cmd == 'exit'):
-                # Quitting
-                print('[EXIT]: Quitting...')
-                exit()
-            else:
-                print('[NOTICE]: Unknown command ({})'.format(str(cmd)))
-                print('[INFO]: Commands: "balance", "sell at", "buy at", "sell volume", "buy volume", "max buy", "set delay"')
+                else:
+                    print('[NOTICE]: Unknown command ({})'.format(str(cmd)))
+                    print('[INFO]: Commands: "balance", "sell at", "buy at", "sell volume", "buy volume", "max buy", "set delay"')
 
-            # Write the new structure to the new file
-            with open('z-coin.ini', 'w') as configfile:
-                config.write(configfile)
-            update_config()
-            update_dictionaries()
-            
-            pause = False
+                # Write the new structure to the new file
+                with open('z-coin.ini', 'w') as configfile:
+                    config.write(configfile)
+                update_config()
+                update_dictionaries()
+                
+                pause = False
 
         # Set our counters
         counter = delay_sell
