@@ -4,23 +4,23 @@
  I'm currently just working on this as a hobby project, but I hope it can be useful to someone.
  
 ## Issues
- - The keyboard hook is called if you press F, even while not focused on the terminal/command prompt. (You can remove this functionality by commenting or removing the line that calls `keyboard.on_press_key()`)
- - Some coins aren't able to be queried, and I'll need to look into the API to find out what the coin tickers are. (For example: `DOGE` doesn't work, but instead it's `XDG`. `BTC` doesn't work, so I need to find out how they're named.)
+ ...
 
 ## Installation & Usage
  1. Download and install [Python](https://www.python.org/downloads/).
- 2. Use PIP to install `keyboard` and `krakenex`. Open a command prompt as admin and type:
+ 2. Use [PIP](https://pip.pypa.io/en/stable/installation/#get-pip-py) to install `krakenex` and `datetime`. Open a command prompt/terminal:
 ```
-pip install keyboard krakenex
+pip install krakenex datetime
 ```
- 3. Download the code in this repository either with GitHub Desktop, or by clicking the Code button at the top of this page and downloading the zip file.
- 4. Navigate to the folder where zKraken is installed to and type:
+*Windows users might need to open command prompt as admin.*
+
+ 3. Download the code in this repository either with GitHub Desktop, cloning via terminal, or by clicking the Code button at the top of this page and downloading the zip file.
+ 4. Navigate to the folder where zKraken is, and run with the `python` command:
 ```
 cd "DIRECTORY PATH"
 python zKraken.py
 ```
-
- If you press F you can enter a few different commands to change INI settings while running. If you type nothing and hit enter you'll see a list of commands. (type them without the quotation marks)
+*Linux users might need to use `python3` instead of `python`.*
  
  To close the program just press Ctrl+C.
 
@@ -28,20 +28,6 @@ python zKraken.py
  The INI file has various options you can change.
  
  > `[TIME] delay` - How many seconds to wait each iteration.
- > 
- > `[TIME] attempt_minutes` - How many minutes it will wait to test for a buy/sell without checking prices.
- > 
- > `[VOLUME] buy` - How many coins to buy at once.
- > 
- > `[VOLUME] sell` - How many coins to sell at once.
- > 
- > `[PRICE] buy` - How much to subtract from `buy_at` each time a transaction is made.
- > 
- > `[PRICE] sell` - How much to add to `sell_at` each time a transaction is made.
- > 
- > `[TYPE] coin` - The coin ticker to use.
- > 
- > `[TYPE] currency` - The currency to use.
  > 
  > `[API] key` - Your Kraken API key.
  > 
