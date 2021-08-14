@@ -1,10 +1,18 @@
 import time, krakenex, configparser, os
 from decimal import *
+from datetime import datetime
 
 if __name__ == '__main__':
     os.system('clear')
 
     try:
+        # Make sure we don't sell or buy too much
+        global sell_save, buy_save, last_sold, last_bought, sell_at, buy_at
+        sell_save = 0
+        buy_save = 0
+        last_sold = None
+        last_bought = None
+
         # Start time to print
         starttime = int(time.time())
 
@@ -29,8 +37,6 @@ if __name__ == '__main__':
         k = krakenex.API(key=api_key, secret=api_sec)
 
         # Trade variables
-        buy_at = Decimal(c_price['buy'])
-        sell_at = Decimal(c_price['sell'])
         max_buy = Decimal(c_price['max_buy'])
         coin = c_type['coin']
         currency = c_type['currency']
@@ -45,13 +51,13 @@ if __name__ == '__main__':
             'pair': pair,
             'ordertype': 'market', 
             'type': 'buy',
-            'volume': Decimal(0.0033)
+            'volume': Decimal(0.003)
         }
         sell_dict = {
             'pair': pair,
             'ordertype': 'market', 
             'type': 'sell',
-            'volume': Decimal(0.0033)
+            'volume': Decimal(0.002)
         }
 
         # Get the account balance
@@ -65,13 +71,16 @@ if __name__ == '__main__':
 
             try:
                 ret = balance['Z{}'.format(currency)]
+                ret2 = balance['XXBT']
             except KeyError:
                 print('[ERROR]: No balance "Z{}"'.format('currency'))
                 return False
 
             # Show currency
             formatted = Decimal(ret)
+            formatted2 = Decimal(ret2)
             print('[INFO]: Account Balance [{currency}]: {formatted:.2f}'.format(currency=currency, formatted=formatted))
+            print('[INFO]: Account Balance [XXBT]: {formatted:.8f}'.format(formatted=formatted2))
 
             return balance
 
@@ -102,8 +111,12 @@ if __name__ == '__main__':
                 return False
             
             formatted = Decimal(price)
-            print('[INFO]: Current market price [' + ticker + ']: ' + '{:.6f}'.format(formatted))
+            print('[INFO]: Current market price [' + ticker + ']: ' + '{:.2f}'.format(formatted))
             return price
+
+        # "Welcome" message
+        print('[{}]: Starting...)'.format(str(starttime)))
+        print('')
         
         # Check the market price
         global current_price
@@ -114,7 +127,7 @@ if __name__ == '__main__':
 
         # Sell
         def sell():
-            global current_price
+            global current_price, last_sold, sell_save
 
             resp = k.query_private('AddOrder', sell_dict)
 
@@ -125,6 +138,7 @@ if __name__ == '__main__':
                 # If we don't have funds we don't need to exit, just print
                 if(error[1] == 'Insufficient funds'):
                     print('[!Sold]: Insufficient funds')
+                    return True
 
                 print('[ERROR]: ' + str(resp['error'][0]))
                 e = open('coin_err.txt', 'a')
@@ -146,11 +160,19 @@ if __name__ == '__main__':
                 print('[INFO]: No "txid"')
             f.close()
 
+            if(last_sold != None):
+                tmp_sold = datetime.now()
+                time_diff = tmp_sold - last_sold
+                mins = int(time_diff.total_seconds() / 60)
+                if(mins < 30): sell_save += 1
+                if(mins > 120): sell_save -= 1
+
+            last_sold = datetime.now()
             return True
 
         # Buy
         def buy():
-            global current_price
+            global current_price, last_bought, buy_save
             
             resp = k.query_private('AddOrder', buy_dict)
 
@@ -181,76 +203,122 @@ if __name__ == '__main__':
                 print('[INFO]: No "txid"')
             f.close()
 
+            if(last_bought != None):
+                tmp_bought = datetime.now()
+                time_diff = tmp_bought - last_bought
+                mins = int(time_diff.total_seconds() / 60)
+                if(mins < 30): buy_save += 1
+                if(mins > 120): buy_save -= 1
+
+            last_bought = datetime.now()
             return True
 
         # Update the sell_at and buy_at prices
         def update_targets(current):
-            global sell_at
-            global buy_at
-            sell_at = Decimal(current) + Decimal(2000.00)
-            buy_at = Decimal(current) - Decimal(2000.00)
+            global sell_at, buy_at, sell_save, buy_save
+            sell_at = Decimal(current) + Decimal(700.00)
+            buy_at = Decimal(current) - Decimal(500.00)
+
+            if(sell_save < 0): sell_save = 0
+            if(sell_save > 1): sell_at += Decimal(300.00) * Decimal(sell_save)
+
+            if(buy_save < 0): buy_save = 0
+            if(buy_save > 1): buy_at -= Decimal(300.00) * Decimal(buy_save)
 
             if(buy_at > max_buy):
                 buy_at = max_buy
+        
+        # Main loop
+        def main_loop():
+            global sell_at, buy_at
+
+            while True:
+                # Format and print the current price
+                current_price = get_ticker_price(coin)
+                current_price = Decimal(current_price)
+
+                # Print sell and buy prices
+                print('[INFO]: sell_at {:.2f}'.format(sell_at))
+                print('[INFO]: buy_at {:.2f}'.format(buy_at))
+                    
+                # Check account balance
+                balance = get_account_balance()
+                if(balance == False):
+                    print('[EXIT]: Error on get_account_balance()')
+                    break
+                balance = balance['Z{}'.format(currency)]
+
+                # Sell if the price is more than the sell_at price
+                if(current_price >= sell_at):
+                    if(sell() == False):
+                        print('[EXIT]: Error on sell()')
+                        break
+
+                    update_targets(current_price)
+
+                # Buy if the price is less than the buy_at price
+                elif(current_price <= buy_at and current_price <= max_buy):
+                    if(Decimal(balance) < 100):
+                        print('[INFO]: Balance less than 100, not buying')
+                        print('[No Action]')
+                        update_targets(current_price)
+                        time.sleep(delay)
+                        print('')
+                        continue
+
+                    if(buy() == False):
+                        print('[EXIT]: Error on buy()')
+                        break
+
+                    update_targets(current_price)
+                
+                else:
+                    print('[No Action]')
+
+                # Sleep
+                print('Waiting...')
+                time.sleep(delay)
+                print('')
         
         # Update initial buy and sell prices
         buy_at = 0
         sell_at = 0
         update_targets(current_price)
-
-        # "Welcome" message
-        print('[{}]: Starting...)'.format(str(starttime)))
+    
+    except ConnectionError as ex:
+        e = open('coin_err.txt', 'a')
+        e.write(ex.strerror)
+        print('')
+        print('!!!!!!!!!!!!!!!!')
+        print('Exception thrown')
+        print(ex.strerror)
         print('')
 
-        while True:
-            # Format and print the current price
-            current_price = get_ticker_price(coin)
-            current_price = Decimal(current_price)
+        e.write('\n')
+        e.close()
+    
+    # "start" here
+    while(True):
+        try:
+            # Start the loop
+            main_loop()
 
-            # Print sell and buy prices
-            print('[INFO]: sell_at {:.3f}'.format(sell_at))
-            print('[INFO]: buy_at {:.3f}'.format(buy_at))
-                
-            # Check account balance
-            balance = get_account_balance()
-            if(balance == False):
-                print('[EXIT]: Error on get_account_balance()')
-                break
-            balance = balance['Z{}'.format(currency)]
-
-            # Sell if the price is more than the sell_at price
-            if(current_price >= sell_at):
-                if(sell() == False):
-                    print('[EXIT]: Error on sell()')
-                    break
-
-                update_targets(current_price)
-
-            # Buy if the price is less than the buy_at price
-            elif(current_price <= buy_at and current_price <= max_buy):
-                if(Decimal(balance) < 100):
-                    print('[INFO]: Balance less than 100, not buying')
-                    print('[No Action]')
-                    update_targets(current_price)
-                    time.sleep(delay)
-                    print('')
-                    continue
-
-                if(buy() == False):
-                    print('[EXIT]: Error on buy()')
-                    break
-
-                update_targets(current_price)
-            
-            else:
-                print('[No Action]')
-
-            # Sleep
-            print('Waiting...')
-            time.sleep(delay)
+        except KeyboardInterrupt:
+            print('')
+            print('Exiting...')
+            exit()
+        
+        except ConnectionError as ex:
+            e = open('coin_err.txt', 'a')
+            e.write(ex.strerror)
+            print('')
+            print('!!!!!!!!!!!!!!!!')
+            print('Exception thrown')
+            print(ex.strerror)
             print('')
 
-    except KeyboardInterrupt:
-        print('Exiting...')
-        print('')
-        exit()
+            e.write('\n')
+            e.close()
+
+            time.sleep(delay)
+            pass
