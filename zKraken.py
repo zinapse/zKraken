@@ -90,7 +90,7 @@ if __name__ == '__main__':
             return balance
 
         # Get the price of a given ticker
-        def get_ticker_price(ticker):
+        def get_ticker_price(ticker, first = False):
             ticker = '{ticker}{currency}'.format(ticker=ticker, currency=currency)
 
             dic = {'pair': ticker}
@@ -116,7 +116,7 @@ if __name__ == '__main__':
                 return False
             
             formatted = Decimal(price)
-            print('[INFO]: Current market price [' + ticker + ']: ' + '{:.2f}'.format(formatted))
+            if(first == False): print('[INFO]: Current market price [' + ticker + ']: ' + '{:.2f}'.format(formatted))
             return price
 
         # "Welcome" message
@@ -125,7 +125,7 @@ if __name__ == '__main__':
         print('')
         
         # Check the market price
-        current_price = get_ticker_price(coin)
+        current_price = get_ticker_price(coin, True)
         if(current_price == False):
             print('[EXIT]: Error on get_ticker_price(\'{}\')'.format(coin))
             exit()
