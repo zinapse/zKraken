@@ -2,17 +2,17 @@ import time, krakenex, configparser, os
 from decimal import *
 from datetime import datetime
 
+global sell_save, buy_save, last_sold, last_bought, sell_at, buy_at, current_price, max_buy
+sell_save = 0
+buy_save = 0
+max_buy = 0
+last_sold = None
+last_bought = None
+
 if __name__ == '__main__':
     os.system('clear')
 
     try:
-        # Make sure we don't sell or buy too much
-        global sell_save, buy_save, last_sold, last_bought, sell_at, buy_at
-        sell_save = 0
-        buy_save = 0
-        last_sold = None
-        last_bought = None
-
         # Start time to print
         starttime = int(time.time())
 
@@ -46,7 +46,7 @@ if __name__ == '__main__':
         coin = c_type['coin']
         currency = c_type['currency']
 
-        # Dictionaries to send
+        # Dictionary to send
         try:
             pair = c_type['pairstr']
         except KeyError:
@@ -124,7 +124,6 @@ if __name__ == '__main__':
         print('')
         
         # Check the market price
-        global current_price
         current_price = get_ticker_price(coin)
         if(current_price == False):
             print('[EXIT]: Error on get_ticker_price(\'{}\')'.format(coin))
@@ -142,7 +141,7 @@ if __name__ == '__main__':
 
                 # If we don't have funds we don't need to exit, just print
                 if(error[1] == 'Insufficient funds'):
-                    print('[!Sold]: Insufficient funds')
+                    print('[!SELL]: Insufficient funds')
                     return True
 
                 print('[ERROR]: ' + str(resp['error'][0]))
@@ -152,17 +151,17 @@ if __name__ == '__main__':
                 return False
 
             result = str(resp['result']['descr']['order'])
-            print('[Sold]: {}: {:.6f}'.format(result, current_price))
+            print('[SELL]: {}: {:.2f}'.format(result, current_price))
 
             f = open('coin_output.txt', 'a')
-            f.write('SELL ORDER: {}: {}\n'.format(result, str(current_price)))
+            f.write('SELL ORDER: {}: {:.2f}\n'.format(result, current_price))
 
             # Output and log the "txid" field if it's returned
-            try:
-                tx_id = str(resp['result']['descr']['txid'])
-                f.write('TXID: {}\n'.format(tx_id))
-            except KeyError:
-                print('[INFO]: No "txid"')
+            # try:
+            #     tx_id = str(resp['result']['descr']['txid'])
+            #     f.write('TXID: {}\n'.format(tx_id))
+            # except KeyError:
+            #     print('[INFO]: No "txid"')
             f.close()
 
             if(last_sold != None):
@@ -187,7 +186,7 @@ if __name__ == '__main__':
 
                 # If we don't have funds we don't need to exit, just print
                 if(error[1] == 'Insufficient funds'):
-                    print('[!Bought]: Insufficient funds')
+                    print('[!BUY]: Insufficient funds')
 
                 print('[ERROR]: ' + str(resp['error'][0]))
                 e = open('coin_err.txt', 'a')
@@ -196,16 +195,17 @@ if __name__ == '__main__':
                 return False
 
             result = str(resp['result']['descr']['order'])
-            print('[Bought]: {}: {:.6f}'.format(result, current_price))
+            print('[BUY]: {}: {:.2f}'.format(result, current_price))
 
             f = open('coin_output.txt', 'a')
-            f.write('BUY ORDER: {} ({})\n'.format(result, str(current_price)))
+            f.write('BUY ORDER: {}: {:.2f}\n'.format(result, current_price))
 
-            try:
-                tx_id = str(resp['result']['descr']['txid'])
-                f.write('TXID: {}\n'.format(tx_id))
-            except KeyError:
-                print('[INFO]: No "txid"')
+            # Output and log the "txid" field if it's returned
+            # try:
+            #     tx_id = str(resp['result']['descr']['txid'])
+            #     f.write('TXID: {}\n'.format(tx_id))
+            # except KeyError:
+            #     print('[INFO]: No "txid"')
             f.close()
 
             if(last_bought != None):
@@ -326,4 +326,4 @@ if __name__ == '__main__':
             e.close()
 
             time.sleep(delay)
-            pass
+            continue
