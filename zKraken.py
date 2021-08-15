@@ -302,6 +302,7 @@ if __name__ == '__main__':
 
         e.write('\n')
         e.close()
+        exit()
     
     # "start" here
     while(True):
