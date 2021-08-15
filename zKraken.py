@@ -25,6 +25,7 @@ if __name__ == '__main__':
         c_price = config['PRICE']
         c_type = config['TYPE']
         c_api = config['API']
+        c_volume = config['VOLUME']
 
         # Minutes to delay each iteration
         delay = int(c_time['delay']) * 60
@@ -38,6 +39,10 @@ if __name__ == '__main__':
 
         # Trade variables
         max_buy = Decimal(c_price['max_buy'])
+        buy_step = Decimal(c_price['buy'])
+        sell_step = Decimal(c_price['sell'])
+        buy_volume = Decimal(c_volume['buy'])
+        sell_volume = Decimal(c_volume['sell'])
         coin = c_type['coin']
         currency = c_type['currency']
 
@@ -51,13 +56,13 @@ if __name__ == '__main__':
             'pair': pair,
             'ordertype': 'market', 
             'type': 'buy',
-            'volume': Decimal(0.003)
+            'volume': buy_volume
         }
         sell_dict = {
             'pair': pair,
             'ordertype': 'market', 
             'type': 'sell',
-            'volume': Decimal(0.002)
+            'volume': sell_volume
         }
 
         # Get the account balance
