@@ -222,18 +222,17 @@ if __name__ == '__main__':
 
         # Update the sell_at and buy_at prices
         def update_targets(current):
-            global sell_at, buy_at, sell_save, buy_save
-            sell_at = Decimal(current) + Decimal(700.00)
-            buy_at = Decimal(current) - Decimal(500.00)
+            global sell_at, buy_at, sell_save, buy_save, max_buy
+            sell_at = Decimal(current) + Decimal(sell_step)
+            buy_at = Decimal(current) - Decimal(buy_step)
 
-            if(sell_save < 0): sell_save = 0
-            if(sell_save > 1): sell_at += Decimal(300.00) * Decimal(sell_save)
+            if(sell_save < 1): sell_save = 1
+            else: sell_at += Decimal(sell_step) * Decimal(sell_save)
 
-            if(buy_save < 0): buy_save = 0
-            if(buy_save > 1): buy_at -= Decimal(300.00) * Decimal(buy_save)
+            if(buy_save < 1): buy_save = 1
+            else: buy_at -= Decimal(buy_step) * Decimal(buy_save)
 
-            if(buy_at > max_buy):
-                buy_at = max_buy
+            if(buy_at > max_buy): buy_at = max_buy
         
         # Main loop
         def main_loop():
