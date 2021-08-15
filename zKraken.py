@@ -130,8 +130,9 @@ if __name__ == '__main__':
             exit()
 
         # Sell
-        def sell():
+        def sell(price):
             global current_price, last_sold, sell_save
+            current_price = Decimal(price)
 
             resp = k.query_private('AddOrder', sell_dict)
 
@@ -175,8 +176,9 @@ if __name__ == '__main__':
             return True
 
         # Buy
-        def buy():
+        def buy(price):
             global current_price, last_bought, buy_save
+            current_price = Decimal(price)
             
             resp = k.query_private('AddOrder', buy_dict)
 
@@ -255,9 +257,9 @@ if __name__ == '__main__':
 
                 # Sell if the price is more than the sell_at price
                 if(current_price >= sell_at):
-                    if(sell() == False):
+                    if(sell(current_price) == False):
                         print('[EXIT]: Error on sell()')
-                        break
+                        exit()
 
                     update_targets(current_price)
 
@@ -271,9 +273,9 @@ if __name__ == '__main__':
                         print('')
                         continue
 
-                    if(buy() == False):
+                    if(buy(current_price) == False):
                         print('[EXIT]: Error on buy()')
-                        break
+                        exit()
 
                     update_targets(current_price)
                 
