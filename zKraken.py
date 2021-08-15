@@ -14,7 +14,7 @@ if __name__ == '__main__':
 
     try:
         # Start time to print
-        starttime = int(time.time())
+        start_time = int(time.time())
 
         # Define our configparser
         config = configparser.ConfigParser()
@@ -120,7 +120,8 @@ if __name__ == '__main__':
             return price
 
         # "Welcome" message
-        print('[{}]: Starting...)'.format(str(starttime)))
+        start_date = datetime.utcfromtimestamp(start_time).strftime('%Y-%m-%d %H:%M:%S')
+        print('[{}]: Starting...'.format(str(start_date)))
         print('')
         
         # Check the market price
