@@ -148,7 +148,8 @@ if __name__ == '__main__':
 
                 print('[ERROR]: ' + str(resp['error'][0]))
                 e = open('coin_err.txt', 'a')
-                e.write('SELL ERROR: {}\n'.format(str(resp['error'][0])))
+                tmp_date = datetime.utcfromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
+                e.write('[{}] SELL ERROR: {}\n'.format(tmp_date, str(resp['error'][0])))
                 e.close()
                 return False
 
@@ -156,7 +157,8 @@ if __name__ == '__main__':
             print('[SELL]: {}: {:.2f}'.format(result, current_price))
 
             f = open('coin_output.txt', 'a')
-            f.write('SELL ORDER: {}: {:.2f}\n'.format(result, current_price))
+            tmp_date = datetime.utcfromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
+            f.write('[{}] SELL ORDER: {}: {:.2f}\n'.format(tmp_date, result, current_price))
 
             # Output and log the "txid" field if it's returned
             # try:
@@ -193,7 +195,8 @@ if __name__ == '__main__':
 
                 print('[ERROR]: ' + str(resp['error'][0]))
                 e = open('coin_err.txt', 'a')
-                e.write('BUY ERROR: {}\n'.format(str(resp['error'][0])))
+                tmp_date = datetime.utcfromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
+                e.write('[{}] BUY ERROR: {}\n'.format(tmp_date, str(resp['error'][0])))
                 e.close()
                 return False
 
@@ -201,7 +204,8 @@ if __name__ == '__main__':
             print('[BUY]: {}: {:.2f}'.format(result, current_price))
 
             f = open('coin_output.txt', 'a')
-            f.write('BUY ORDER: {}: {:.2f}\n'.format(result, current_price))
+            tmp_date = datetime.utcfromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
+            f.write('[{}] BUY ORDER: {}: {:.2f}\n'.format(tmp_date, result, current_price))
 
             # Output and log the "txid" field if it's returned
             # try:
