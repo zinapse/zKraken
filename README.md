@@ -29,6 +29,12 @@ python zKraken.py
  
  > `[TIME] delay` - How many seconds to wait each iteration.
  > 
+ > `[VOLUME]` - Quantity of coins to buy or sell.
+ > 
+ > `[PRICE] buy/sell` - How much to offset the buy or sell price.
+ > 
+ > `[PRICE] max_buy` - The max price to buy the coin at.
+ > 
  > `[API] key` - Your Kraken API key.
  > 
  > `[API] sec` - Your Kraken API sec.
