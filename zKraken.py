@@ -245,7 +245,12 @@ if __name__ == '__main__':
 
             while True:
                 # Format and print the current price
-                current_price = get_ticker_price(coin)
+                try:
+                    current_price = get_ticker_price(coin)
+                except ConnectionError:
+                    time.sleep(delay)
+                    continue
+                
                 current_price = Decimal(current_price)
 
                 # Print sell and buy prices
