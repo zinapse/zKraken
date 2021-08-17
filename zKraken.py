@@ -2,7 +2,7 @@ import time, krakenex, configparser, os
 from decimal import *
 from datetime import datetime
 
-global sell_save, buy_save, last_sold, last_bought, sell_at, buy_at, current_price, max_buy, exit_saves
+global sell_save, buy_save, last_sold, last_bought, sell_at, buy_at, current_price, max_buy, exit_saves, buy_step, sell_step, buy_dict, sell_dict
 sell_save = 0
 buy_save = 0
 max_buy = 0
@@ -14,6 +14,8 @@ exit_saves = {
 }
 last_sold = None
 last_bought = None
+buy_step = None
+sell_step = None
 
 if __name__ == '__main__':
     os.system('clear')
@@ -353,7 +355,7 @@ if __name__ == '__main__':
                 current (Decimal): The current price of the coin.
             """
 
-            global sell_at, buy_at, sell_save, buy_save, max_buy
+            global sell_at, buy_at, sell_save, buy_save, max_buy, buy_step, sell_step
             sell_at = Decimal(current) + Decimal(sell_step)
             buy_at = Decimal(current) - Decimal(buy_step)
 
@@ -370,12 +372,48 @@ if __name__ == '__main__':
             """The main function loop.
             """
 
-            global sell_at, buy_at
+            global sell_at, buy_at, delay, buy_step, sell_step, buy_volume, sell_volume, buy_dict, sell_dict
 
             while True:
                 # Format and print the current price
                 current_price = get_ticker_price(coin)
                 current_price = Decimal(current_price)
+
+                # Update config
+                config.read('z-coin.ini')
+                c_time = config['TIME']
+                c_price = config['PRICE']
+                c_volume = config['VOLUME']
+
+                if(delay != int(c_time['delay'])):
+                    delay = int(c_time['delay'])
+                    print('[INI]: delay = {}'.format(delay))
+                if(buy_step != int(c_price['buy'])):
+                    buy_step = int(c_price['buy'])
+                    print('[INI]: buy_step = {}'.format(buy_step))
+                    update_targets(current_price)
+                if(sell_step != int(c_price['sell'])):
+                    sell_step = int(c_price['sell'])
+                    print('[INI]: sell_step = {}'.format(sell_step))
+                    update_targets(current_price)
+                if(buy_volume != Decimal(c_volume['buy'])):
+                    buy_volume = Decimal(c_volume['buy'])
+                    buy_dict = {
+                        'pair': pair,
+                        'ordertype': 'market', 
+                        'type': 'buy',
+                        'volume': buy_volume
+                    }
+                    print('[INI]: buy_volume = {}'.format(buy_volume))
+                if(sell_volume != Decimal(c_volume['sell'])):
+                    sell_volume = Decimal(c_volume['sell'])
+                    sell_dict = {
+                        'pair': pair,
+                        'ordertype': 'market', 
+                        'type': 'sell',
+                        'volume': sell_volume
+                    }
+                    print('[INI]: sell_volume = {}'.format(sell_volume))
 
                 # Print sell and buy prices
                 print('[INFO]: sell_at {:.2f}'.format(sell_at))
