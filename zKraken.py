@@ -101,7 +101,7 @@ if __name__ == '__main__':
 
             try:
                 # Money Balance
-                ret = balance['{}'.format(currency)]
+                ret = balance['Z{}'.format(currency)]
 
                 # Do this to format BTC
                 c = coin
@@ -116,7 +116,7 @@ if __name__ == '__main__':
                 e.write('\n')
                 e.close()
 
-                print('[ERROR]: No balance "{}"'.format(currency))
+                print('[ERROR]: No balance "Z{}"'.format(currency))
                 exit()
 
             # Show currency
