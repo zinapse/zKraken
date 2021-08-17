@@ -2,10 +2,16 @@ import time, krakenex, configparser, os
 from decimal import *
 from datetime import datetime
 
-global sell_save, buy_save, last_sold, last_bought, sell_at, buy_at, current_price, max_buy
+global sell_save, buy_save, last_sold, last_bought, sell_at, buy_at, current_price, max_buy, exit_saves
 sell_save = 0
 buy_save = 0
 max_buy = 0
+exit_saves = {
+    'balance': 0,
+    'ticker': 0,
+    'sell': 0,
+    'buy': 0
+}
 last_sold = None
 last_bought = None
 
