@@ -73,6 +73,12 @@ if __name__ == '__main__':
 
         # Get the account balance
         def get_account_balance():
+            """Get the current account balance.
+
+            Returns:
+                bool|Decimal: False if the function fails, or the account balance if it's successful.
+            """
+
             global exit_saves
             try:
                 balance = k.query_private('Balance')
@@ -129,6 +135,16 @@ if __name__ == '__main__':
 
         # Get the price of a given ticker
         def get_ticker_price(ticker, first = False):
+            """Get the price of a coin.
+
+            Args:
+                ticker (str): The coin's ticker.
+                first (bool, optional): If the function is being called for the first time. Defaults to False.
+
+            Returns:
+                bool|Decimal: False if the function fails, or the coin price if it's successful.
+            """
+
             global exit_saves
 
             # Format ticker variable and create a dictionary
@@ -196,6 +212,14 @@ if __name__ == '__main__':
 
         # Sell
         def sell(price):
+            """Function to sell coins.
+
+            Args:
+                price (Decimal): The price to sell at.
+
+            Returns:
+                bool: If the function was completed successfully.
+            """
             global current_price, last_sold, sell_save, exit_saves
             current_price = Decimal(price)
 
@@ -256,6 +280,14 @@ if __name__ == '__main__':
 
         # Buy
         def buy(price):
+            """Function to buy coins.
+
+            Args:
+                price (Decimal): The price to buy at.
+
+            Returns:
+                bool: If the function was completed successfully.
+            """
             global current_price, last_bought, buy_save, exit_saves
             current_price = Decimal(price)
             
@@ -315,6 +347,12 @@ if __name__ == '__main__':
 
         # Update the sell_at and buy_at prices
         def update_targets(current):
+            """Function to update the sell_at and buy_at variables.
+
+            Args:
+                current (Decimal): The current price of the coin.
+            """
+
             global sell_at, buy_at, sell_save, buy_save, max_buy
             sell_at = Decimal(current) + Decimal(sell_step)
             buy_at = Decimal(current) - Decimal(buy_step)
@@ -329,6 +367,9 @@ if __name__ == '__main__':
         
         # Main loop
         def main_loop():
+            """The main function loop.
+            """
+
             global sell_at, buy_at
 
             while True:
