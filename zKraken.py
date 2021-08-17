@@ -94,7 +94,12 @@ if __name__ == '__main__':
             ticker = '{ticker}{currency}'.format(ticker=ticker, currency=currency)
 
             dic = {'pair': ticker}
-            _q = k.query_public('Ticker', data=dic)
+            try:
+                _q = k.query_public('Ticker', data=dic)
+            except ConnectionError:
+                print('[ERROR]: ConnectionError, waiting...')
+                time.sleep(20)
+                return False
 
             if(len(_q['error']) > 0):
                 print('[ERROR]: ' + str(_q['error'][0]))
@@ -245,7 +250,12 @@ if __name__ == '__main__':
 
             while True:
                 # Format and print the current price
-                current_price = get_ticker_price(coin)
+                try:
+                    current_price = get_ticker_price(coin)
+                except ConnectionError:
+                    time.sleep(delay)
+                    continue
+
                 current_price = Decimal(current_price)
 
                 # Print sell and buy prices
@@ -320,13 +330,13 @@ if __name__ == '__main__':
             print('Exiting...')
             exit()
         
-        except ConnectionError as ex:
+        except Exception as ex:
             e = open('coin_err.txt', 'a')
-            e.write(ex.strerror)
+            e.write(str(ex))
             print('')
             print('!!!!!!!!!!!!!!!!')
             print('Exception thrown')
-            print(ex.strerror)
+            print(str(ex))
             print('')
 
             e.write('\n')
