@@ -242,13 +242,6 @@ if __name__ == '__main__':
             f = open('coin_output.txt', 'a')
             tmp_date = datetime.utcfromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
             f.write('[{}] SELL ORDER: {}: {:.2f}\n'.format(tmp_date, result, current_price))
-
-            # Output and log the "txid" field if it's returned
-            # try:
-            #     tx_id = str(resp['result']['descr']['txid'])
-            #     f.write('TXID: {}\n'.format(tx_id))
-            # except KeyError:
-            #     print('[INFO]: No "txid"')
             f.close()
 
             if(last_sold != None):
@@ -308,13 +301,6 @@ if __name__ == '__main__':
             f = open('coin_output.txt', 'a')
             tmp_date = datetime.utcfromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
             f.write('[{}] BUY ORDER: {}: {:.2f}\n'.format(tmp_date, result, current_price))
-
-            # Output and log the "txid" field if it's returned
-            # try:
-            #     tx_id = str(resp['result']['descr']['txid'])
-            #     f.write('TXID: {}\n'.format(tx_id))
-            # except KeyError:
-            #     print('[INFO]: No "txid"')
             f.close()
 
             if(last_bought != None):
