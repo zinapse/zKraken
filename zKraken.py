@@ -27,8 +27,8 @@ if __name__ == '__main__':
         c_api = config['API']
         c_volume = config['VOLUME']
 
-        # Minutes to delay each iteration
-        delay = int(c_time['delay']) * 60
+        # Seconds to delay each iteration
+        delay = int(c_time['delay'])
 
         # API variables
         api_key = c_api['key']
