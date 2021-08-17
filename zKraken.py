@@ -110,8 +110,14 @@ if __name__ == '__main__':
                 # Coin Balance
                 ret2 = balance[c]
             except KeyError:
+                tmp_date = datetime.utcfromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
+                e = open('coin_err.txt', 'a')
+                e.write('[{}] KeyError: get_account_balance()'.format(tmp_date))
+                e.write('\n')
+                e.close()
+
                 print('[ERROR]: No balance "{}"'.format(currency))
-                return False
+                exit()
 
             # Show currency
             formatted = Decimal(ret)
@@ -162,12 +168,13 @@ if __name__ == '__main__':
             try:
                 price = _q['result'][pairstr]['a'][0]
             except KeyError:
-                print('[ERROR]: No ticker value')
+                tmp_date = datetime.utcfromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
                 e = open('coin_err.txt', 'a')
-                e.write('GET_TICKER_PRICE Error')
+                e.write('[{}] KeyError: get_ticker_price()'.format(tmp_date))
                 e.write('\n')
                 e.close()
-                return False
+                print('[ERROR]: No ticker value')
+                exit()
             
             formatted = Decimal(price)
             
@@ -340,19 +347,7 @@ if __name__ == '__main__':
 
             while True:
                 # Format and print the current price
-                try:
-                    current_price = get_ticker_price(coin)
-                except ConnectionError:
-                    print('[ERROR]: ConnectionError main_loop()')
-                    e = open('coin_err.txt', 'a')
-                    tmp_date = datetime.utcfromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
-                    e.write('[{}] ConnectionError...'.format(tmp_date))
-                    e.write('\n')
-                    e.close()
-                    print('Waiting...')
-                    time.sleep(delay)
-                    continue
-
+                current_price = get_ticker_price(coin)
                 current_price = Decimal(current_price)
 
                 # Print sell and buy prices
@@ -406,13 +401,13 @@ if __name__ == '__main__':
         sell_at = 0
         update_targets(current_price)
     
-    except ConnectionError as ex:
+    except Exception as ex:
         e = open('coin_err.txt', 'a')
-        e.write(ex.strerror)
+        e.write(str(ex))
         print('')
         print('!!!!!!!!!!!!!!!!')
         print('Exception thrown')
-        print(ex.strerror)
+        print(str(ex))
         print('')
 
         e.write('\n')
