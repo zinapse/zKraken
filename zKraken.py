@@ -361,7 +361,7 @@ if __name__ == '__main__':
                     print('')
                     time.sleep(delay)
                     continue
-                balance = balance['{}'.format(currency)]
+                balance = balance['Z{}'.format(currency)]
 
                 # Sell if the price is more than the sell_at price
                 if(current_price >= sell_at):
