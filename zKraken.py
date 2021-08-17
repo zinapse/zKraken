@@ -73,43 +73,86 @@ if __name__ == '__main__':
 
         # Get the account balance
         def get_account_balance():
-            balance = k.query_private('Balance')
+            global exit_saves
             try:
+                balance = k.query_private('Balance')
                 balance = balance['result']
             except KeyError:
                 print('[ERROR]: No balance result...')
                 return False
+            except ConnectionError:
+                e = open('coin_err.txt', 'a')
+                tmp_date = datetime.utcfromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
+                if(exit_saves['balance'] > 3):
+                    print('[EXIT]: Max attempts made in get_account_balance()')
+                    e.write('[{}] Max attempts: get_account_balance()'.format(tmp_date))
+                    e.write('\n')
+                    e.close()
+                    exit()
+
+                print('[ERROR]: ConnectionError get_account_balance()')
+                e.write('[{}] ConnectionError: get_account_balance()'.format(tmp_date))
+                e.write('\n')
+                e.close()
+                exit_saves['balance'] += 1
+                return False
+            
+            exit_saves['balance'] = 0
 
             try:
-                ret = balance['Z{}'.format(currency)]
-                ret2 = balance['XXBT']
+                # Money Balance
+                ret = balance['{}'.format(currency)]
+
+                # Do this to format BTC
+                c = coin
+                if(coin == 'XBT'): c = 'XXBT'
+
+                # Coin Balance
+                ret2 = balance[c]
             except KeyError:
-                print('[ERROR]: No balance "Z{}"'.format('currency'))
+                print('[ERROR]: No balance "{}"'.format(currency))
                 return False
 
             # Show currency
             formatted = Decimal(ret)
             formatted2 = Decimal(ret2)
             print('[INFO]: Account Balance [{currency}]: {formatted:.2f}'.format(currency=currency, formatted=formatted))
-            print('[INFO]: Account Balance [XXBT]: {formatted:.8f}'.format(formatted=formatted2))
+            print('[INFO]: Account Balance [{currency}]: {formatted:.8f}'.format(currency=coin, formatted=formatted2))
 
             return balance
 
         # Get the price of a given ticker
         def get_ticker_price(ticker, first = False):
-            ticker = '{ticker}{currency}'.format(ticker=ticker, currency=currency)
+            global exit_saves
 
+            # Format ticker variable and create a dictionary
+            ticker = '{ticker}{currency}'.format(ticker=ticker, currency=currency)
             dic = {'pair': ticker}
+
             try:
                 _q = k.query_public('Ticker', data=dic)
             except ConnectionError:
-                print('[ERROR]: ConnectionError, waiting...')
-                time.sleep(20)
+                e = open('coin_err.txt', 'a')
+                tmp_date = datetime.utcfromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
+                if(exit_saves['ticker'] > 3):
+                    print('[EXIT]: Max attempts made in get_ticker_price()')
+                    e.write('[{}] Max attempts: get_ticker_price()'.format(tmp_date))
+                    e.write('\n')
+                    e.close()
+                    exit()
+
+                print('[ERROR]: ConnectionError get_ticker_price')
+                e.write('[{}] ConnectionError: get_ticker_price()'.format(tmp_date))
+                e.write('\n')
+                e.close()
+                exit_saves['ticker'] += 1
                 return False
 
             if(len(_q['error']) > 0):
                 print('[ERROR]: ' + str(_q['error'][0]))
                 return False
+
+            exit_saves['ticker'] = 0
 
             try:
                 pairstr = c_type['pairstr']
@@ -127,7 +170,10 @@ if __name__ == '__main__':
                 return False
             
             formatted = Decimal(price)
+            
+            # Doing this to not print twice on program start
             if(first == False): print('[INFO]: Current market price [' + ticker + ']: ' + '{:.2f}'.format(formatted))
+
             return price
 
         # "Welcome" message
@@ -143,10 +189,29 @@ if __name__ == '__main__':
 
         # Sell
         def sell(price):
-            global current_price, last_sold, sell_save
+            global current_price, last_sold, sell_save, exit_saves
             current_price = Decimal(price)
 
-            resp = k.query_private('AddOrder', sell_dict)
+            try:
+                resp = k.query_private('AddOrder', sell_dict)
+            except ConnectionError:
+                e = open('coin_err.txt', 'a')
+                tmp_date = datetime.utcfromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
+                if(exit_saves['sell'] > 3):
+                    print('[EXIT]: Max attempts made in sell()')
+                    e.write('[{}] Max attempts: sell()'.format(tmp_date))
+                    e.write('\n')
+                    e.close()
+                    exit()
+
+                print('[ERROR]: ConnectionError sell()')
+                e.write('[{}] ConnectionError: sell()'.format(tmp_date))
+                e.write('\n')
+                e.close()
+                exit_saves['sell'] += 1
+                return False
+
+            exit_saves['sell'] = 0
 
             if(len(resp['error']) > 0):
                 error = str(resp['error'][0])
@@ -191,10 +256,29 @@ if __name__ == '__main__':
 
         # Buy
         def buy(price):
-            global current_price, last_bought, buy_save
+            global current_price, last_bought, buy_save, exit_saves
             current_price = Decimal(price)
             
-            resp = k.query_private('AddOrder', buy_dict)
+            try:
+                resp = k.query_private('AddOrder', buy_dict)
+            except ConnectionError:
+                e = open('coin_err.txt', 'a')
+                tmp_date = datetime.utcfromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
+                if(exit_saves['buy'] > 3):
+                    print('[EXIT]: Max attempts made in buy()')
+                    e.write('[{}] Max attempts: buy()'.format(tmp_date))
+                    e.write('\n')
+                    e.close()
+                    exit()
+
+                print('[ERROR]: ConnectionError buy()')
+                e.write('[{}] ConnectionError: buy()'.format(tmp_date))
+                e.write('\n')
+                e.close()
+                exit_saves['buy'] += 1
+                return False
+            
+            exit_saves['buy'] = 0
 
             if(len(resp['error']) > 0):
                 error = str(resp['error'][0])
@@ -259,6 +343,13 @@ if __name__ == '__main__':
                 try:
                     current_price = get_ticker_price(coin)
                 except ConnectionError:
+                    print('[ERROR]: ConnectionError main_loop()')
+                    e = open('coin_err.txt', 'a')
+                    tmp_date = datetime.utcfromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
+                    e.write('[{}] ConnectionError...'.format(tmp_date))
+                    e.write('\n')
+                    e.close()
+                    print('Waiting...')
                     time.sleep(delay)
                     continue
 
@@ -271,15 +362,17 @@ if __name__ == '__main__':
                 # Check account balance
                 balance = get_account_balance()
                 if(balance == False):
-                    print('[EXIT]: Error on get_account_balance()')
-                    break
-                balance = balance['Z{}'.format(currency)]
+                    print('Waiting...')
+                    time.sleep(delay)
+                    continue
+                balance = balance['{}'.format(currency)]
 
                 # Sell if the price is more than the sell_at price
                 if(current_price >= sell_at):
                     if(sell(current_price) == False):
-                        print('[EXIT]: Error on sell()')
-                        exit()
+                        print('Waiting...')
+                        time.sleep(delay)
+                        continue
 
                     update_targets(current_price)
 
@@ -294,8 +387,9 @@ if __name__ == '__main__':
                         continue
 
                     if(buy(current_price) == False):
-                        print('[EXIT]: Error on buy()')
-                        exit()
+                        print('Waiting...')
+                        time.sleep(delay)
+                        continue
 
                     update_targets(current_price)
                 
