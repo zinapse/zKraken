@@ -358,6 +358,7 @@ if __name__ == '__main__':
                 balance = get_account_balance()
                 if(balance == False):
                     print('Waiting...')
+                    print('')
                     time.sleep(delay)
                     continue
                 balance = balance['{}'.format(currency)]
@@ -366,6 +367,7 @@ if __name__ == '__main__':
                 if(current_price >= sell_at):
                     if(sell(current_price) == False):
                         print('Waiting...')
+                        print('')
                         time.sleep(delay)
                         continue
 
@@ -377,12 +379,14 @@ if __name__ == '__main__':
                         print('[INFO]: Balance less than 100, not buying')
                         print('[No Action]')
                         update_targets(current_price)
-                        time.sleep(delay)
+                        print('Waiting...')
                         print('')
+                        time.sleep(delay)
                         continue
 
                     if(buy(current_price) == False):
                         print('Waiting...')
+                        print('')
                         time.sleep(delay)
                         continue
 
