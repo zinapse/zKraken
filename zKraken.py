@@ -421,7 +421,7 @@ if __name__ == '__main__':
 
                 # Print sell and buy prices
                 print('[INFO]: sell @ {:.2f} (save = {})'.format(sell_at, sell_save))
-                print('[INFO]: buy @ {:.2f} (save = {})'.format(buy_at, buy_save))
+                print('[INFO]: buy  @ {:.2f} (save = {})'.format(buy_at, buy_save))
                     
                 # Check account balance
                 balance = get_account_balance()
