@@ -29,6 +29,8 @@ python zKraken.py
  
  > `[TIME] delay` - How many seconds to wait each iteration.
  > 
+ > `[TIME] min_save_time_(buy/sell) / min_save_time_(buy/sell)` - The "min" save times are setup so if an order is placed before X seconds, it will add to the save multiplier. The inverse will happen with the "max" times.
+ > 
  > `[VOLUME]` - Quantity of coins to buy or sell.
  > 
  > `[PRICE] buy/sell` - How much to offset the buy or sell price.
