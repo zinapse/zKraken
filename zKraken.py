@@ -372,7 +372,7 @@ if __name__ == '__main__':
             """The main function loop.
             """
 
-            global sell_at, buy_at, delay, buy_step, sell_step, buy_volume, sell_volume, buy_dict, sell_dict
+            global sell_at, buy_at, delay, buy_step, sell_step, buy_save, sell_save, buy_volume, sell_volume, buy_dict, sell_dict
 
             while True:
                 # Format and print the current price
@@ -391,10 +391,14 @@ if __name__ == '__main__':
                 if(buy_step != int(c_price['buy'])):
                     buy_step = int(c_price['buy'])
                     print('[INI]: buy_step = {}'.format(buy_step))
+                    buy_save = 1
+                    sell_save = 1
                     update_targets(current_price)
                 if(sell_step != int(c_price['sell'])):
                     sell_step = int(c_price['sell'])
                     print('[INI]: sell_step = {}'.format(sell_step))
+                    buy_save = 1
+                    sell_save = 1
                     update_targets(current_price)
                 if(buy_volume != Decimal(c_volume['buy'])):
                     buy_volume = Decimal(c_volume['buy'])
@@ -416,8 +420,8 @@ if __name__ == '__main__':
                     print('[INI]: sell_volume = {}'.format(sell_volume))
 
                 # Print sell and buy prices
-                print('[INFO]: sell_at {:.2f}'.format(sell_at))
-                print('[INFO]: buy_at {:.2f}'.format(buy_at))
+                print('[INFO]: sell @ {:.2f} (save = {})'.format(sell_at, sell_save))
+                print('[INFO]: buy @ {:.2f} (save = {})'.format(buy_at, buy_save))
                     
                 # Check account balance
                 balance = get_account_balance()
