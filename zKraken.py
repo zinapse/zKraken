@@ -23,7 +23,10 @@ buy_step = None
 sell_step = None
 
 if __name__ == '__main__':
-    os.system('clear')
+    if(os.name == 'nt'):
+        os.system('cls')
+    else:
+        os.system('clear')
 
     try:
         # Start time to print
