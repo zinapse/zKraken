@@ -203,6 +203,10 @@ if __name__ == '__main__':
 
         # "Welcome" message
         start_date = datetime.utcfromtimestamp(start_time).strftime('%Y-%m-%d %H:%M:%S')
+        e = open('coin_err.txt', 'a')
+        e.write('[{}] Starting ---------------------------------'.format(start_date))
+        e.write('\n')
+        e.close()
         print('[{}]: Starting...'.format(str(start_date)))
         print('')
         
