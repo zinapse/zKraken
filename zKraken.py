@@ -2,10 +2,15 @@ import time, krakenex, configparser, os
 from decimal import *
 from datetime import datetime
 
-global sell_save, buy_save, last_sold, last_bought, sell_at, buy_at, current_price, max_buy, exit_saves, buy_step, sell_step, buy_dict, sell_dict
+global sell_save, buy_save, last_sold, last_bought, sell_at, buy_at, current_price, \
+    max_buy, exit_saves, buy_step, sell_step, buy_dict, sell_dict, min_save_time_s, max_save_time_s, min_save_time_b, max_save_time_b
 sell_save = 0
 buy_save = 0
 max_buy = 0
+min_save_time_s = 0
+max_save_time_s = 0
+min_save_time_b = 0
+max_save_time_b = 0
 exit_saves = {
     'balance': 0,
     'ticker': 0,
@@ -37,6 +42,12 @@ if __name__ == '__main__':
 
         # Seconds to delay each iteration
         delay = int(c_time['delay'])
+
+        # Min and max seconds before increase or decrease in sell or buy save
+        min_save_time_s = int(c_time['min_save_time_sell'])
+        max_save_time_s = int(c_time['max_save_time_sell'])
+        min_save_time_b = int(c_time['min_save_time_buy'])
+        max_save_time_b = int(c_time['max_save_time_buy'])
 
         # API variables
         api_key = c_api['key']
@@ -226,7 +237,7 @@ if __name__ == '__main__':
             Returns:
                 bool: If the function was completed successfully.
             """
-            global current_price, last_sold, sell_save, exit_saves
+            global current_price, last_sold, sell_save, exit_saves, min_save_time_s, max_save_time_s
             current_price = Decimal(price)
 
             try:
@@ -277,9 +288,9 @@ if __name__ == '__main__':
             if(last_sold != None):
                 tmp_sold = datetime.now()
                 time_diff = tmp_sold - last_sold
-                mins = int(time_diff.total_seconds() / 60)
-                if(mins < 30): sell_save += 1
-                if(mins > 120): sell_save -= 1
+                seconds = int(time_diff.total_seconds())
+                if(seconds < min_save_time_s): sell_save += 1
+                if(seconds > max_save_time_s): sell_save -= 1
 
             last_sold = datetime.now()
             return True
@@ -294,7 +305,7 @@ if __name__ == '__main__':
             Returns:
                 bool: If the function was completed successfully.
             """
-            global current_price, last_bought, buy_save, exit_saves
+            global current_price, last_bought, buy_save, exit_saves, min_save_time_b, max_save_time_b
             current_price = Decimal(price)
             
             try:
@@ -344,9 +355,9 @@ if __name__ == '__main__':
             if(last_bought != None):
                 tmp_bought = datetime.now()
                 time_diff = tmp_bought - last_bought
-                mins = int(time_diff.total_seconds() / 60)
-                if(mins < 30): buy_save += 1
-                if(mins > 120): buy_save -= 1
+                seconds = int(time_diff.total_seconds())
+                if(seconds < min_save_time_b): buy_save += 1
+                if(seconds > max_save_time_b): buy_save -= 1
 
             last_bought = datetime.now()
             return True
@@ -376,7 +387,8 @@ if __name__ == '__main__':
             """The main function loop.
             """
 
-            global sell_at, buy_at, delay, buy_step, sell_step, buy_save, sell_save, buy_volume, sell_volume, buy_dict, sell_dict
+            global sell_at, buy_at, delay, buy_step, sell_step, buy_save, sell_save, buy_volume, sell_volume, buy_dict, sell_dict, \
+                min_save_time_s, max_save_time_s, min_save_time_b, max_save_time_b
 
             while True:
                 # Format and print the current price
@@ -389,9 +401,25 @@ if __name__ == '__main__':
                 c_price = config['PRICE']
                 c_volume = config['VOLUME']
 
+                # Checking for INI changes
                 if(delay != int(c_time['delay'])):
                     delay = int(c_time['delay'])
                     print('[INI]: delay = {}'.format(delay))
+
+                if(min_save_time_s != int(c_time['min_save_time_sell'])):
+                    min_save_time_s = int(c_time['min_save_time_sell'])
+                    print('[INI]: min_save_time_s = {}'.format(min_save_time_s))
+                if(max_save_time_s != int(c_time['max_save_time_sell'])):
+                    max_save_time_s = int(c_time['max_save_time_sell'])
+                    print('[INI]: max_save_time_s = {}'.format(max_save_time_s))
+
+                if(min_save_time_b != int(c_time['min_save_time_buy'])):
+                    min_save_time_b = int(c_time['min_save_time_buy'])
+                    print('[INI]: min_save_time_b = {}'.format(min_save_time_b))
+                if(max_save_time_b != int(c_time['max_save_time_buy'])):
+                    max_save_time_b = int(c_time['max_save_time_buy'])
+                    print('[INI]: max_save_time_b = {}'.format(max_save_time_b))
+
                 if(buy_step != int(c_price['buy'])):
                     buy_step = int(c_price['buy'])
                     print('[INI]: buy_step = {}'.format(buy_step))
@@ -404,6 +432,7 @@ if __name__ == '__main__':
                     buy_save = 1
                     sell_save = 1
                     update_targets(current_price)
+                    
                 if(buy_volume != Decimal(c_volume['buy'])):
                     buy_volume = Decimal(c_volume['buy'])
                     buy_dict = {
