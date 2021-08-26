@@ -3,7 +3,7 @@ from decimal import *
 from datetime import datetime
 
 global sell_save, buy_save, last_sold, last_bought, sell_at, buy_at, current_price, \
-    max_buy, exit_saves, buy_step, sell_step, buy_dict, sell_dict, min_save_time_s, max_save_time_s, min_save_time_b, max_save_time_b
+    max_buy, exit_saves, buy_step, sell_step, buy_dict, sell_dict, min_save_time_s, max_save_time_s, min_save_time_b, max_save_time_b, buy_floor
 sell_save = 0
 buy_save = 0
 max_buy = 0
@@ -21,6 +21,7 @@ last_sold = None
 last_bought = None
 buy_step = None
 sell_step = None
+buy_floor = None
 
 if __name__ == '__main__':
     if(os.name == 'nt'):
@@ -86,6 +87,18 @@ if __name__ == '__main__':
             'type': 'sell',
             'volume': sell_volume
         }
+
+        def round_nearest_large(x, num = 50000):
+            """Round x to the closest "num".
+
+            Args:
+                x (int): The number to round.
+                num (int, optional): Closest number to round to. Defaults to 50000.
+
+            Returns:
+                int: The rounded number.
+            """
+            return ((x + num // 2) // num) * num
 
         # Get the account balance
         def get_account_balance():
@@ -240,7 +253,7 @@ if __name__ == '__main__':
             Returns:
                 bool: If the function was completed successfully.
             """
-            global current_price, last_sold, sell_save, exit_saves, min_save_time_s, max_save_time_s
+            global current_price, last_sold, sell_save, exit_saves, min_save_time_s, max_save_time_s, buy_floor
             current_price = Decimal(price)
 
             try:
@@ -296,6 +309,11 @@ if __name__ == '__main__':
                 if(seconds > max_save_time_s): sell_save -= 1
 
             last_sold = datetime.now()
+
+            buy_floor = round_nearest_large(int(current_price), 100)
+            if(buy_floor > int(current_price)): buy_floor -= 100
+            buy_floor = Decimal(buy_floor)
+
             return True
 
         # Buy
@@ -374,7 +392,7 @@ if __name__ == '__main__':
                 balance_exit (bool, optional): True if we're here and the balance is less than the minimum. Defaults to False.
             """
 
-            global sell_at, buy_at, sell_save, buy_save, max_buy, buy_step, sell_step
+            global sell_at, buy_at, sell_save, buy_save, max_buy, buy_step, sell_step, buy_floor
             sell_at = Decimal(current) + Decimal(sell_step)
             buy_at = Decimal(current) - Decimal(buy_step)
 
@@ -387,6 +405,17 @@ if __name__ == '__main__':
             if(balance_exit):
                 buy_save = 1
                 sell_save = 1
+
+            # Handle our "floor"
+            if(buy_floor != None):
+                if(buy_save == 1): 
+                    buy_floor = None
+                else:
+                    buy_floor = Decimal(buy_floor)
+                    if(buy_at > buy_floor):
+                        temp = int(buy_at) - int(buy_floor)
+                        if(int(temp) > int(buy_step) * int(buy_save)):
+                            buy_at = Decimal(buy_floor)
 
             if(buy_at > max_buy): buy_at = max_buy
         
