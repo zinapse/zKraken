@@ -366,11 +366,12 @@ if __name__ == '__main__':
             return True
 
         # Update the sell_at and buy_at prices
-        def update_targets(current):
+        def update_targets(current, balance_exit = False):
             """Function to update the sell_at and buy_at variables.
 
             Args:
                 current (Decimal): The current price of the coin.
+                balance_exit (bool, optional): True if we're here and the balance is less than the minimum. Defaults to False.
             """
 
             global sell_at, buy_at, sell_save, buy_save, max_buy, buy_step, sell_step
@@ -382,6 +383,10 @@ if __name__ == '__main__':
 
             if(buy_save < 1): buy_save = 1
             else: buy_at -= Decimal(buy_step) * Decimal(buy_save)
+
+            if(balance_exit):
+                buy_save = 1
+                sell_save = 1
 
             if(buy_at > max_buy): buy_at = max_buy
         
@@ -483,7 +488,7 @@ if __name__ == '__main__':
                     if(Decimal(balance) < 100):
                         print('[INFO]: Balance less than 100, not buying')
                         print('[No Action]')
-                        update_targets(current_price)
+                        update_targets(current_price, True)
                         print('Waiting...')
                         print('')
                         time.sleep(delay)
