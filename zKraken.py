@@ -413,10 +413,12 @@ if __name__ == '__main__':
                     buy_floor = None
                 else:
                     buy_floor = Decimal(buy_floor)
+                    print('[INFO]: buy_floor = {}'.format(buy_floor))
                     if(buy_at > buy_floor):
                         temp = int(buy_at) - int(buy_floor)
                         if(int(temp) > int(buy_step) * int(buy_save)):
                             buy_at = Decimal(buy_floor)
+                            print('[INFO]: buy_at lowered to buy_floor')
 
             if(buy_at > max_buy): buy_at = max_buy
         
