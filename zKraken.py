@@ -402,6 +402,7 @@ if __name__ == '__main__':
             if(buy_save < 1): buy_save = 1
             else: buy_at -= Decimal(buy_step) * Decimal(buy_save)
 
+            # If our balance was low then reset the saves
             if(balance_exit):
                 buy_save = 1
                 sell_save = 1
