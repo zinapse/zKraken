@@ -2,27 +2,6 @@ import time, krakenex, configparser, os
 from decimal import *
 from datetime import datetime
 
-global sell_save, buy_save, last_sold, last_bought, sell_at, buy_at, current_price, \
-    max_buy, exit_saves, buy_step, sell_step, buy_dict, sell_dict, min_save_time_s, max_save_time_s, min_save_time_b, max_save_time_b, buy_floor
-sell_save = 0
-buy_save = 0
-max_buy = 0
-min_save_time_s = 0
-max_save_time_s = 0
-min_save_time_b = 0
-max_save_time_b = 0
-exit_saves = {
-    'balance': 0,
-    'ticker': 0,
-    'sell': 0,
-    'buy': 0
-}
-last_sold = None
-last_bought = None
-buy_step = None
-sell_step = None
-buy_floor = None
-
 if __name__ == '__main__':
     if(os.name == 'nt'):
         os.system('cls')
@@ -30,6 +9,8 @@ if __name__ == '__main__':
         os.system('clear')
 
     try:
+        global delay, max_buy, buy_volume, sell_volume, buy_dict, sell_dict, fee
+        
         # Start time to print
         start_time = int(time.time())
 
@@ -47,12 +28,6 @@ if __name__ == '__main__':
         # Seconds to delay each iteration
         delay = int(c_time['delay'])
 
-        # Min and max seconds before increase or decrease in sell or buy save
-        min_save_time_s = int(c_time['min_save_time_sell'])
-        max_save_time_s = int(c_time['max_save_time_sell'])
-        min_save_time_b = int(c_time['min_save_time_buy'])
-        max_save_time_b = int(c_time['max_save_time_buy'])
-
         # API variables
         api_key = c_api['key']
         api_sec = c_api['sec']
@@ -62,8 +37,6 @@ if __name__ == '__main__':
 
         # Trade variables
         max_buy = Decimal(c_price['max_buy'])
-        buy_step = Decimal(c_price['buy'])
-        sell_step = Decimal(c_price['sell'])
         buy_volume = Decimal(c_volume['buy'])
         sell_volume = Decimal(c_volume['sell'])
         coin = c_type['coin']
@@ -74,7 +47,7 @@ if __name__ == '__main__':
             pair = c_type['pairstr']
         except KeyError:
             pair = '{coin}{currency}'.format(coin=coin, currency=currency)
-
+        
         buy_dict = {
             'pair': pair,
             'ordertype': 'market', 
@@ -108,7 +81,6 @@ if __name__ == '__main__':
                 bool|Decimal: False if the function fails, or the account balance if it's successful.
             """
 
-            global exit_saves
             try:
                 balance = k.query_private('Balance')
                 balance = balance['result']
@@ -118,21 +90,12 @@ if __name__ == '__main__':
             except ConnectionError:
                 e = open('coin_err.txt', 'a')
                 tmp_date = datetime.utcfromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
-                if(exit_saves['balance'] > 3):
-                    print('[EXIT]: Max attempts made in get_account_balance()')
-                    e.write('[{}] Max attempts: get_account_balance()'.format(tmp_date))
-                    e.write('\n')
-                    e.close()
-                    exit()
 
                 print('[ERROR]: ConnectionError get_account_balance()')
                 e.write('[{}] ConnectionError: get_account_balance()'.format(tmp_date))
                 e.write('\n')
                 e.close()
-                exit_saves['balance'] += 1
                 return False
-            
-            exit_saves['balance'] = 0
 
             try:
                 # Money Balance
@@ -174,8 +137,6 @@ if __name__ == '__main__':
                 bool|Decimal: False if the function fails, or the coin price if it's successful.
             """
 
-            global exit_saves
-
             # Format ticker variable and create a dictionary
             ticker = '{ticker}{currency}'.format(ticker=ticker, currency=currency)
             dic = {'pair': ticker}
@@ -185,25 +146,16 @@ if __name__ == '__main__':
             except ConnectionError:
                 e = open('coin_err.txt', 'a')
                 tmp_date = datetime.utcfromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
-                if(exit_saves['ticker'] > 3):
-                    print('[EXIT]: Max attempts made in get_ticker_price()')
-                    e.write('[{}] Max attempts: get_ticker_price()'.format(tmp_date))
-                    e.write('\n')
-                    e.close()
-                    exit()
 
                 print('[ERROR]: ConnectionError get_ticker_price')
                 e.write('[{}] ConnectionError: get_ticker_price()'.format(tmp_date))
                 e.write('\n')
                 e.close()
-                exit_saves['ticker'] += 1
                 return False
 
             if(len(_q['error']) > 0):
                 print('[ERROR]: ' + str(_q['error'][0]))
                 return False
-
-            exit_saves['ticker'] = 0
 
             try:
                 pairstr = c_type['pairstr']
@@ -221,27 +173,59 @@ if __name__ == '__main__':
                 print('[ERROR]: No ticker value')
                 exit()
             
-            formatted = Decimal(price)
-            
             # Doing this to not print twice on program start
-            if(first == False): print('[INFO]: Current market price [' + ticker + ']: ' + '{:.2f}'.format(formatted))
+            if(first == False): print('[INFO]: Current market price [' + ticker + ']: ' + '{:.2f}'.format(Decimal(price)))
 
             return price
 
-        # "Welcome" message
-        start_date = datetime.utcfromtimestamp(start_time).strftime('%Y-%m-%d %H:%M:%S')
-        e = open('coin_err.txt', 'a')
-        e.write('[{}] Starting ---------------------------------'.format(start_date))
-        e.write('\n')
-        e.close()
-        print('[{}]: Starting...'.format(str(start_date)))
-        print('')
-        
-        # Check the market price
-        current_price = get_ticker_price(coin, True)
-        if(current_price == False):
-            print('[EXIT]: Error on get_ticker_price(\'{}\')'.format(coin))
-            exit()
+        # Get the current fee
+        def get_fee(ticker):
+            """Get the current fee for trading.
+
+            Args:
+                ticker (str): The coin's ticker.
+
+            Returns:
+                bool|Decimal: False if the function fails, or the current fee.
+            """
+            
+            # Format ticker variable and create a dictionary
+            ticker = '{ticker}{currency}'.format(ticker=ticker, currency=currency)
+            dic = {'pair': ticker}
+            
+            try:
+                _q = k.query_public('AssetPairs', data=dic)
+            except ConnectionError:
+                e = open('coin_err.txt', 'a')
+                tmp_date = datetime.utcfromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
+
+                print('[ERROR]: ConnectionError get_fee')
+                e.write('[{}] ConnectionError: get_fee()'.format(tmp_date))
+                e.write('\n')
+                e.close()
+                return False
+
+            if(len(_q['error']) > 0):
+                print('[ERROR]: ' + str(_q['error'][0]))
+                return False
+
+            try:
+                pairstr = c_type['pairstr']
+            except KeyError:
+                pairstr = ticker
+            
+            try:
+                fee = _q['result'][pairstr]['fees'][0]
+            except KeyError:
+                tmp_date = datetime.utcfromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
+                e = open('coin_err.txt', 'a')
+                e.write('[{}] KeyError: get_ticker_price()'.format(tmp_date))
+                e.write('\n')
+                e.close()
+                print('[ERROR]: No ticker value')
+                exit()
+            
+            return fee
 
         # Sell
         def sell(price):
@@ -253,7 +237,7 @@ if __name__ == '__main__':
             Returns:
                 bool: If the function was completed successfully.
             """
-            global current_price, last_sold, sell_save, exit_saves, min_save_time_s, max_save_time_s, buy_floor
+            global current_price
             current_price = Decimal(price)
 
             try:
@@ -261,21 +245,12 @@ if __name__ == '__main__':
             except ConnectionError:
                 e = open('coin_err.txt', 'a')
                 tmp_date = datetime.utcfromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
-                if(exit_saves['sell'] > 3):
-                    print('[EXIT]: Max attempts made in sell()')
-                    e.write('[{}] Max attempts: sell()'.format(tmp_date))
-                    e.write('\n')
-                    e.close()
-                    exit()
 
                 print('[ERROR]: ConnectionError sell()')
                 e.write('[{}] ConnectionError: sell()'.format(tmp_date))
                 e.write('\n')
                 e.close()
-                exit_saves['sell'] += 1
                 return False
-
-            exit_saves['sell'] = 0
 
             if(len(resp['error']) > 0):
                 error = str(resp['error'][0])
@@ -301,19 +276,6 @@ if __name__ == '__main__':
             f.write('[{}] SELL ORDER: {}: {:.2f}\n'.format(tmp_date, result, current_price))
             f.close()
 
-            if(last_sold != None):
-                tmp_sold = datetime.now()
-                time_diff = tmp_sold - last_sold
-                seconds = int(time_diff.total_seconds())
-                if(seconds < min_save_time_s): sell_save += 1
-                if(seconds > max_save_time_s): sell_save -= 1
-
-            last_sold = datetime.now()
-
-            buy_floor = round_nearest_large(int(current_price), 100)
-            if(buy_floor > int(current_price)): buy_floor -= 100
-            buy_floor = Decimal(buy_floor)
-
             return True
 
         # Buy
@@ -326,7 +288,7 @@ if __name__ == '__main__':
             Returns:
                 bool: If the function was completed successfully.
             """
-            global current_price, last_bought, buy_save, exit_saves, min_save_time_b, max_save_time_b
+            global current_price, buy_dict, last_buy
             current_price = Decimal(price)
             
             try:
@@ -334,21 +296,12 @@ if __name__ == '__main__':
             except ConnectionError:
                 e = open('coin_err.txt', 'a')
                 tmp_date = datetime.utcfromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
-                if(exit_saves['buy'] > 3):
-                    print('[EXIT]: Max attempts made in buy()')
-                    e.write('[{}] Max attempts: buy()'.format(tmp_date))
-                    e.write('\n')
-                    e.close()
-                    exit()
 
                 print('[ERROR]: ConnectionError buy()')
                 e.write('[{}] ConnectionError: buy()'.format(tmp_date))
                 e.write('\n')
                 e.close()
-                exit_saves['buy'] += 1
                 return False
-            
-            exit_saves['buy'] = 0
 
             if(len(resp['error']) > 0):
                 error = str(resp['error'][0])
@@ -373,67 +326,23 @@ if __name__ == '__main__':
             f.write('[{}] BUY ORDER: {}: {:.2f}\n'.format(tmp_date, result, current_price))
             f.close()
 
-            if(last_bought != None):
-                tmp_bought = datetime.now()
-                time_diff = tmp_bought - last_bought
-                seconds = int(time_diff.total_seconds())
-                if(seconds < min_save_time_b): buy_save += 1
-                if(seconds > max_save_time_b): buy_save -= 1
-
-            last_bought = datetime.now()
+            last_buy = current_price
             return True
-
-        # Update the sell_at and buy_at prices
-        def update_targets(current, balance_exit = False):
-            """Function to update the sell_at and buy_at variables.
-
-            Args:
-                current (Decimal): The current price of the coin.
-                balance_exit (bool, optional): True if we're here and the balance is less than the minimum. Defaults to False.
-            """
-
-            global sell_at, buy_at, sell_save, buy_save, max_buy, buy_step, sell_step, buy_floor
-            sell_at = Decimal(current) + Decimal(sell_step)
-            buy_at = Decimal(current) - Decimal(buy_step)
-
-            if(sell_save < 1): sell_save = 1
-            else: sell_at += Decimal(sell_step) * Decimal(sell_save)
-
-            if(buy_save < 1): buy_save = 1
-            else: buy_at -= Decimal(buy_step) * Decimal(buy_save)
-
-            # If our balance was low then reset the saves
-            if(balance_exit):
-                buy_save = 1
-                sell_save = 1
-
-            # Handle our "floor"
-            if(buy_floor != None):
-                if(buy_save == 1): 
-                    buy_floor = None
-                else:
-                    buy_floor = Decimal(buy_floor)
-                    print('[INFO]: buy_floor = {}'.format(buy_floor))
-                    if(buy_at > buy_floor):
-                        temp = int(buy_at) - int(buy_floor)
-                        if(int(temp) > int(buy_step) * int(buy_save)):
-                            buy_at = Decimal(buy_floor)
-                            print('[INFO]: buy_at lowered to buy_floor')
-
-            if(buy_at > max_buy): buy_at = max_buy
+        
+        def calculate_profit(last_buy):
+            global fee
+            return Decimal(last_buy * fee)
         
         # Main loop
         def main_loop():
             """The main function loop.
             """
 
-            global sell_at, buy_at, delay, buy_step, sell_step, buy_save, sell_save, buy_volume, sell_volume, buy_dict, sell_dict, \
-                min_save_time_s, max_save_time_s, min_save_time_b, max_save_time_b
+            global delay, buy_volume, sell_volume, buy_dict, sell_dict, max_buy, last_sell, last_buy
 
             while True:
                 # Format and print the current price
-                current_price = get_ticker_price(coin)
-                current_price = Decimal(current_price)
+                current_price = Decimal(get_ticker_price(coin))
 
                 # Update config
                 config.read('z-coin.ini')
@@ -445,34 +354,6 @@ if __name__ == '__main__':
                 if(delay != int(c_time['delay'])):
                     delay = int(c_time['delay'])
                     print('[INI]: delay = {}'.format(delay))
-
-                if(min_save_time_s != int(c_time['min_save_time_sell'])):
-                    min_save_time_s = int(c_time['min_save_time_sell'])
-                    print('[INI]: min_save_time_s = {}'.format(min_save_time_s))
-                if(max_save_time_s != int(c_time['max_save_time_sell'])):
-                    max_save_time_s = int(c_time['max_save_time_sell'])
-                    print('[INI]: max_save_time_s = {}'.format(max_save_time_s))
-
-                if(min_save_time_b != int(c_time['min_save_time_buy'])):
-                    min_save_time_b = int(c_time['min_save_time_buy'])
-                    print('[INI]: min_save_time_b = {}'.format(min_save_time_b))
-                if(max_save_time_b != int(c_time['max_save_time_buy'])):
-                    max_save_time_b = int(c_time['max_save_time_buy'])
-                    print('[INI]: max_save_time_b = {}'.format(max_save_time_b))
-
-                if(buy_step != int(c_price['buy'])):
-                    buy_step = int(c_price['buy'])
-                    print('[INI]: buy_step = {}'.format(buy_step))
-                    buy_save = 1
-                    sell_save = 1
-                    update_targets(current_price)
-                if(sell_step != int(c_price['sell'])):
-                    sell_step = int(c_price['sell'])
-                    print('[INI]: sell_step = {}'.format(sell_step))
-                    buy_save = 1
-                    sell_save = 1
-                    update_targets(current_price)
-                    
                 if(buy_volume != Decimal(c_volume['buy'])):
                     buy_volume = Decimal(c_volume['buy'])
                     buy_dict = {
@@ -491,61 +372,35 @@ if __name__ == '__main__':
                         'volume': sell_volume
                     }
                     print('[INI]: sell_volume = {}'.format(sell_volume))
-
-                # Print sell and buy prices
-                print('[INFO]: sell @ {:.2f} (save = {})'.format(sell_at, sell_save))
-                print('[INFO]: buy  @ {:.2f} (save = {})'.format(buy_at, buy_save))
-                    
+                if(max_buy != Decimal(c_price['max_buy'])):
+                    max_buy = Decimal(c_price['max_buy'])
+                    print('[INI] max_buy = {}').format(max_buy)
+                
                 # Check account balance
                 balance = get_account_balance()
                 if(balance == False):
-                    print('Waiting...')
+                    print('Waiting for balance...')
                     print('')
                     time.sleep(delay)
                     continue
                 balance = balance['Z{}'.format(currency)]
-
-                # Sell if the price is more than the sell_at price
-                if(current_price >= sell_at):
-                    if(sell(current_price) == False):
-                        print('Waiting...')
-                        print('')
-                        time.sleep(delay)
-                        continue
-
-                    update_targets(current_price)
-
-                # Buy if the price is less than the buy_at price
-                elif(current_price <= buy_at and current_price <= max_buy):
-                    if(Decimal(balance) < 100):
-                        print('[INFO]: Balance less than 100, not buying')
-                        print('[No Action]')
-                        update_targets(current_price, True)
-                        print('Waiting...')
-                        print('')
-                        time.sleep(delay)
-                        continue
-
-                    if(buy(current_price) == False):
-                        print('Waiting...')
-                        print('')
-                        time.sleep(delay)
-                        continue
-
-                    update_targets(current_price)
                 
+                # Buy if we haven't already and it's under max_buy
+                if(last_buy == None):
+                    if(balance > 0 and current_price <= max_buy):
+                        buy(current_price)
+                        last_buy = current_price
                 else:
-                    print('[No Action]')
+                    # We have bought before, calculate profit
+                    profit = calculate_profit(last_buy)
+                    
+                    # If we profit 50 or more then sell
+                    if(profit > 50):
+                        sell(current_price)
+                        last_sell = current_price
 
                 # Sleep
-                print('Waiting...')
                 time.sleep(delay)
-                print('')
-        
-        # Update initial buy and sell prices
-        buy_at = 0
-        sell_at = 0
-        update_targets(current_price)
     
     except Exception as ex:
         e = open('coin_err.txt', 'a')
@@ -558,6 +413,26 @@ if __name__ == '__main__':
 
         e.write('\n')
         e.close()
+        exit()
+    
+    # Welcome message
+    start_date = datetime.utcfromtimestamp(start_time).strftime('%Y-%m-%d %H:%M:%S')
+    e = open('coin_err.txt', 'a')
+    e.write('[{}] Starting ---------------------------------'.format(start_date))
+    e.write('\n')
+    e.close()
+    print('[{}]: Starting...'.format(str(start_date)))
+    print('')
+    
+    # Check the market price
+    current_price = get_ticker_price(coin, True)
+    if(current_price == False):
+        print('[EXIT]: Error on get_ticker_price(\'{}\')'.format(coin))
+        exit()
+    
+    fee = get_fee(coin)
+    if(fee == False):
+        print('[EXIT]: Error on get_fee(\'{}\')').format(coin)
         exit()
     
     # "start" here
