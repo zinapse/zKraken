@@ -9,7 +9,7 @@ if __name__ == '__main__':
         os.system('clear')
 
     try:
-        global delay, max_buy, buy_volume, sell_volume, buy_dict, sell_dict, fee
+        global delay, max_buy, buy_volume, sell_volume, buy_dict, sell_dict, profit_min
         
         # Start time to print
         start_time = int(time.time())
@@ -39,6 +39,7 @@ if __name__ == '__main__':
         max_buy = Decimal(c_price['max_buy'])
         buy_volume = Decimal(c_volume['buy'])
         sell_volume = Decimal(c_volume['sell'])
+        profit_min = Decimal(c_price['profit_min'])
         coin = c_type['coin']
         currency = c_type['currency']
 
@@ -329,7 +330,17 @@ if __name__ == '__main__':
             last_buy = current_price
             return True
         
+        # Calculate potential profit
         def calculate_profit(last_buy):
+            """Calculate how much we profit from the last_buy price.
+
+            Args:
+                last_buy (Decimal): The price we last sold at.
+
+            Returns:
+                Decimal: The amount we profit.
+            """
+            
             global fee
             return Decimal(last_buy * fee)
         
@@ -338,7 +349,7 @@ if __name__ == '__main__':
             """The main function loop.
             """
 
-            global delay, buy_volume, sell_volume, buy_dict, sell_dict, max_buy, last_sell, last_buy
+            global delay, buy_volume, sell_volume, buy_dict, sell_dict, max_buy, last_sell, last_buy, fee, profit_min
 
             while True:
                 # Format and print the current price
@@ -350,7 +361,8 @@ if __name__ == '__main__':
                 c_price = config['PRICE']
                 c_volume = config['VOLUME']
 
-                # Checking for INI changes
+                #############################
+                # START Check for INI changes
                 if(delay != int(c_time['delay'])):
                     delay = int(c_time['delay'])
                     print('[INI]: delay = {}'.format(delay))
@@ -375,6 +387,11 @@ if __name__ == '__main__':
                 if(max_buy != Decimal(c_price['max_buy'])):
                     max_buy = Decimal(c_price['max_buy'])
                     print('[INI] max_buy = {}').format(max_buy)
+                if(profit_min != Decimal(c_price['profit_min'])):
+                    profit_min = Decimal(c_price['profit_min'])
+                    print('[INI]: proft_min = {}').format(profit_min)
+                # END Check for INI changes
+                ###########################
                 
                 # Check account balance
                 balance = get_account_balance()
@@ -385,19 +402,18 @@ if __name__ == '__main__':
                     continue
                 balance = balance['Z{}'.format(currency)]
                 
-                # Buy if we haven't already and it's under max_buy
                 if(last_buy == None):
                     if(balance > 0 and current_price <= max_buy):
+                        # Buy if we haven't already, and if the current price is under max_buy
                         buy(current_price)
-                        last_buy = current_price
-                else:
-                    # We have bought before, calculate profit
-                    profit = calculate_profit(last_buy)
-                    
-                    # If we profit 50 or more then sell
-                    if(profit > 50):
+                        last_buy = Decimal(current_price)
+                elif(calculate_profit(last_buy) > 50):
+                        # If we profit more than profit_min then sell
                         sell(current_price)
-                        last_sell = current_price
+                        last_sell = Decimal(current_price)
+                else:
+                    # @TODO: Check if we should buy or not
+                    print()
 
                 # Sleep
                 time.sleep(delay)
